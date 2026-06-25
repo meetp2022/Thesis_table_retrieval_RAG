@@ -1,0 +1,31 @@
+# ============================================================
+# Pipeline 2 — Image Baseline (Visual Encoding)
+# ============================================================
+# Inherits all settings from base_config.yaml
+
+pipeline:
+  name: "image_baseline"
+  id: 2
+  description: >
+    Table pages embedded as images using CLIP/ColPali.
+    Preserves visual layout but not semantic cell relationships.
+
+# --- Image Encoding ---
+image_encoding:
+  model: "openai/clip-vit-base-patch32"   # CLIP vision encoder
+  image_resolution: 224                    # CLIP input size
+  embedding_dimension: 512
+
+# --- Table Rendering ---
+table_rendering:
+  method: "html_to_image"       # Render table HTML as image
+  dpi: 150
+  max_width: 1024
+  max_height: 768
+  background: "white"
+  font_size: 12
+
+# --- Indexing ---
+indexing:
+  strategy: "per_table"         # One image per table
+  normalize_embeddings: true

@@ -1,0 +1,68 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual Environment ──
+.venv/
+.venv310/
+venv/
+env/
+
+# ── IDE / Editor ──
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# ── Node (used only by docs/ for docx generation) ──
+node_modules/
+docs/node_modules/
+package-lock.json
+
+# ── Data (large files — download via script) ──
+data/raw/
+data/embeddings/
+data/processed/
+!data/raw/.gitkeep
+!data/embeddings/.gitkeep
+!data/processed/.gitkeep
+
+# ── Results (regenerable) ──
+data/results/*.json
+data/results/**/*.json
+
+# ── Embedding cache (regenerable, can be large) ──
+data/cache/
+
+# ── Logs ──
+logs/
+
+# ── Model checkpoints (too large for GitHub; obtain via models/README.md) ──
+*.bin
+*.pt
+*.pth
+*.onnx
+*.safetensors
+models/bge_finetuned/
+models/graph_encoder/
+!models/README.md
+!models/.gitkeep
+
+# ── Notebooks checkpoints ──
+.ipynb_checkpoints/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Environment ──
+.env
+.env.local

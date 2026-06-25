@@ -1,0 +1,80 @@
+# ============================================================
+# Pipeline 3 — Graph-Augmented Table Encoding (Novel Approach)
+# ============================================================
+# Inherits all settings from base_config.yaml
+# Only graph-specific settings defined here
+
+pipeline:
+  name: "graph_augmented"
+  id: 3
+  description: >
+    Tables parsed into directed graphs where cells are nodes,
+    header-to-cell and row-adjacency relationships are directed edges.
+    Graph embeddings are generated and indexed in FAISS for retrieval.
+
+# --- Graph Construction ---
+graph:
+  # Node types
+  node_types:
+    - "header"          # Column header cells
+    - "data_cell"       # Data cells within the table
+    - "table_metadata"  # Table-level metadata (title, source)
+
+  # Edge types (directed)
+  edge_types:
+    - type: "header_to_cell"
+      description: "Connects a column header to each data cell in that column"
+      direction: "header → cell"
+
+    - type: "row_adjacency"
+      description: "Connects cells within the same row (left-to-right)"
+      direction: "cell → cell"
+
+    - type: "column_adjacency"
+      description: "Connects cells within the same column (top-to-bottom)"
+      direction: "cell → cell"
+
+    - type: "table_to_header"
+      description: "Connects table metadata node to all headers"
+      direction: "table → header"
+
+  # Node features
+  node_features:
+    text_embedding: true        # Embed cell text content
+    position_encoding: true     # Encode (row, col) position
+    cell_type: true             # One-hot: header vs data cell
+    numeric_flag: true          # Whether cell contains a number
+
+# --- Graph Embedding ---
+graph_embedding:
+  method: "graph_sage"          # GraphSAGE for inductive learning
+  hidden_dim: 256
+  output_dim: 768               # Match text embedding dimension for FAISS
+  num_layers: 2
+  aggregator: "mean"
+  dropout: 0.1
+  normalize_output: true
+
+# --- Table-to-Graph Conversion ---
+table_parsing:
+  handle_merged_cells: true     # Expand merged cells into individual nodes
+  handle_nested_headers: true   # Multi-level headers → multiple edges
+  max_rows: 100                 # Truncate very large tables
+  max_cols: 50
+  include_table_title: true     # Add table title as metadata node
+
+# --- Contrastive Training ---
+training:
+  lr: 0.0001                    # AdamW learning rate
+  temperature: 0.07             # InfoNCE temperature (lower = sharper)
+  epochs: 20                    # Max training epochs
+  batch_size: 16                # Pairs per batch (needs ≥2 for negatives)
+  patience: 5                   # Early stopping patience
+  save_dir: "models/graph_encoder"
+  num_hard_negatives: 8         # Hard negatives per sample (0=disabled)
+
+# --- Indexing ---
+indexing:
+  strategy: "per_table"         # One graph per table
+  pool_graph_embedding: "mean"  # Pool node embeddings → single table vector
+  store_node_embeddings: true   # Also store individual node embeddings

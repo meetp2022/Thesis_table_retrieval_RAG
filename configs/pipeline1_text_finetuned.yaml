@@ -1,0 +1,42 @@
+# ============================================================
+# Pipeline 1b — Fine-Tuned Text Baseline (BGE + WikiTQ)
+# ============================================================
+# Same as pipeline1_text.yaml but swaps the embedding model for
+# the BGE checkpoint fine-tuned on WikiTableQuestions training pairs.
+#
+# Run fine-tuning first:
+#   python scripts/finetune_bge.py --max-train 15000 --epochs 5
+# Then evaluate:
+#   python scripts/eval_retrieval.py --pipeline text_finetuned \
+#       --dataset wikitq --max-samples 500
+
+pipeline:
+  name: "text_finetuned"
+  id: "1b"
+  description: >
+    Tables linearised to Markdown. Embedding model is BGE-base fine-tuned
+    for 5 epochs on 15 000 WikiTQ (question, table) pairs using
+    MultipleNegativesRankingLoss. Measures in-domain adaptation gain
+    over generic BGE-base.
+
+# --- Embedding (overrides base_config) ---
+embedding:
+  model: "models/bge_finetuned/best"   # local path to fine-tuned checkpoint
+  dimension: 768
+  batch_size: 4                        # reduced for CPU memory safety
+  normalize: true
+
+# --- Table Linearisation (identical to text baseline) ---
+linearisation:
+  method: "markdown"
+  include_headers: true
+  include_row_indices: false
+  separator: " | "
+  row_separator: "\n"
+  include_table_title: true
+
+# --- Chunking ---
+chunking:
+  strategy: "fixed_size"
+  chunk_size: 1000
+  chunk_overlap: 200

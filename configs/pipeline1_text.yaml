@@ -1,0 +1,26 @@
+# ============================================================
+# Pipeline 1 — Text Baseline (Flattened OCR/String)
+# ============================================================
+# Inherits all settings from base_config.yaml
+
+pipeline:
+  name: "text_baseline"
+  id: 1
+  description: >
+    Tables converted to plain text strings via linearisation.
+    Standard vector embedding and FAISS retrieval. Industry baseline.
+
+# --- Table Linearisation ---
+linearisation:
+  method: "markdown"            # Convert tables to Markdown format
+  include_headers: true
+  include_row_indices: false
+  separator: " | "
+  row_separator: "\n"
+  include_table_title: true
+
+# --- Chunking ---
+chunking:
+  strategy: "fixed_size"
+  chunk_size: 1000              # Tokens
+  chunk_overlap: 200            # Aligned with TableRAG paper settings

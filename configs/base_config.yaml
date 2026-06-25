@@ -1,0 +1,94 @@
+# ============================================================
+# Base Configuration — Shared Across All Pipelines
+# ============================================================
+
+project:
+  name: "graph-table-rag"
+  version: "0.1.0"
+  description: "Graph-Augmented Table Retrieval in RAG Pipelines"
+
+# --- LLM Backbone (same for all pipelines) ---
+llm:
+  provider: "ollama"
+  model: "mistral"          # Mistral 7B via Ollama
+  temperature: 0.0          # Deterministic for reproducibility
+  max_tokens: 512
+  base_url: "http://localhost:11434"
+
+# --- Answer Generation ---
+generation:
+  max_tables: 3               # Max retrieved tables included in prompt
+  include_context_text: true   # Include paragraph context for hybrid datasets
+  max_rows_per_table: 50       # Truncate large tables in prompt
+  timeout_seconds: 120         # LLM generation timeout
+  fallback_to_mock: false      # Use mock client if Ollama unavailable
+
+# --- Embedding Model (for text/graph pipelines) ---
+embedding:
+  model: "BAAI/bge-base-en-v1.5"   # Strong general-purpose embeddings
+  dimension: 768
+  batch_size: 32
+  normalize: true
+
+# --- Vector Store ---
+vector_store:
+  type: "faiss"
+  index_type: "IndexFlatIP"  # Inner product (cosine sim with normalised vectors)
+  top_k: 5                   # Retrieve top-5 chunks
+
+# --- Retrieval ---
+retrieval:
+  top_k: 5
+  reranking: false            # Can enable later for ablation
+  chunk_size: 1000            # Tokens per chunk (aligned with TableRAG paper)
+  chunk_overlap: 200          # Token overlap between chunks
+
+# --- Datasets ---
+datasets:
+  wikitablequestions:
+    source: "stanfordnlp/wikitablequestions"
+    split_config: "random-split-1"
+    domain: "general"
+    train_split: "train"
+    test_split: "test"
+    val_split: "validation"
+
+  tatqa:
+    source: "next-tat/TAT-QA"
+    domain: "finance"
+    description: "Hybrid text-table financial QA"
+
+  finqa:
+    source: "czyssrs/FinQA"
+    domain: "finance"
+    description: "Multi-step numerical reasoning over financial reports"
+
+# --- Evaluation ---
+evaluation:
+  metrics:
+    - "recall_at_1"         # R@1
+    - "recall_at_5"         # R@5
+    - "exact_match"         # EM
+    - "f1_score"            # Token-level F1
+    - "faithfulness"        # RAGAS faithfulness
+    - "context_precision"   # RAGAS context precision
+    - "latency"             # End-to-end query time (seconds)
+  ragas:
+    llm_model: "mistral"    # Use same LLM for evaluation
+    batch_size: 8
+
+# --- Experiment Settings ---
+experiment:
+  seed: 42
+  num_eval_samples: null     # null = use all; set integer for quick testing
+  log_dir: "logs/"
+  results_dir: "data/results/"
+  save_predictions: true
+
+# --- Paths ---
+paths:
+  raw_data: "data/raw/"
+  processed_data: "data/processed/"
+  embeddings: "data/embeddings/"
+  results: "data/results/"
+  logs: "logs/"
